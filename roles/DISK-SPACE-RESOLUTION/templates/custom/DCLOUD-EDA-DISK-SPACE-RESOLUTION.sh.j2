@@ -1,0 +1,27 @@
+#!/bin/bash
+source ~/.bashrc
+
+
+du -h -d 2 -t 100M /ehc/fs1/adp/delgate/data/*/*.sql > HIGH_size_SQL_files.txt
+
+cat HIGH_size_SQL_files.txt| sed 's/^.\{4\}//'|sed "s/^[ \t]*//" > /ehc/fs1/adp/delgate/EDA/HIGH_size_SQL_files_nameonly.txt
+
+while read sqlfile_name; do
+  echo "$sqlfile_name"
+
+find $sqlfile_name -mmin +240 |tar -czvf "$sqlfile_name"_$(date +%F).tar.gz $sqlfile_name
+
+find $sqlfile_name -mmin +240 -type f -exec rm -f {} \;
+
+done < HIGH_size_SQL_files_nameonly.txt
+
+#zipping splunk file
+
+#find /ehc/fs1/adp/delgate/logs/splunks -type f -size +1G -exec ls {} \; |  tar -czvf  /ehc/fs1/adp/delgate/logs/splunks/older_splunk_$(date +%F).tar.gz -P .
+find /ehc/fs1/adp/delgate/logs/splunks/logs_replication.log -type f -size +1G -exec ls {} \; | tar -czvf  /ehc/fs1/adp/delgate/logs/splunks/older_splunk_$(date +%F).tar.gz -P /ehc/fs1/adp/delgate/logs/splunks/logs_replication.log
+
+echo "" > /ehc/fs1/adp/delgate/logs/splunks/logs_replication.log
+
+
+
+echo -e "EDA Resolution step has been completed . Please wait for POST-verify check " | mail -s "{{jira_Ticket}} | EDA RESOLUTION check |disk drive space" dcloud@adp.com

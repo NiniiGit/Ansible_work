@@ -1,0 +1,8 @@
+---
+- name: Post verify
+  block:
+
+  - debug:
+      msg: "EDA_POST_VerificationResult Passed"
+  tags:
+    - post-verify

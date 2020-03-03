@@ -1,0 +1,9 @@
+#!/bin/bash
+source ~/.bashrc
+
+#send email with attachment below files
+
+du -h -d 2 -t 100M /ehc/fs1/adp/delgate/data/*/*.sql > HIGH_size_SQL_files.txt
+du -h -d 2 -t 1G /ehc/fs1/adp/delgate/logs/splunks/logs_replication.log >> HIGH_size_SQL_files.txt
+
+echo -e "Please find the attached details of files consuming more than 100mb, out of which if any .sql files present; then older than 4 hours will be zipped. If its splunk logs_replication.log file;it will be fully zipped without deleting it  " | mail -a /ehc/fs1/home/infog/deploy/EDA/DCLOUD-EDA-DISK-SPACE-PRE-VERIFY/HIGH_size_SQL_files.txt  -s "{{jira_Ticket}} | EDA Pre-verify check |disk drive space" dcloud@adp.com

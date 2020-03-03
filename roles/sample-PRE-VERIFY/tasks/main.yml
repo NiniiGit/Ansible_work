@@ -1,0 +1,18 @@
+---
+# - name: Pre verify
+#   block:
+- name: "Creates deploy directory for {{role_name}}"
+  file:
+    path: /ehc/fs1/home/infog/deploy/EDA/check_dbgate_db.sh
+    state: absent
+    # register: result
+
+- name: "Creates deploy directory for {{role_name}}"
+  file:
+    path: /ehc/fs1/home/infog/deploy/EDA/EDA_output.log
+    state: absent
+
+- debug: msg="EDA_PRE_VerificationResult Passed"
+  # tags:
+  #   - pre-verify
+  # when: result.state is defined

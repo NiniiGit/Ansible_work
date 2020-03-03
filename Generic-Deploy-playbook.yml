@@ -1,0 +1,87 @@
+# This is generic playbook for DPM deployment
+
+- name: "Deploy {{app_name}}"
+  hosts: "{{host_target}}"
+  vars:
+    lnx_base_deploy_dir: /ehc/fs1/home/infog/deploy
+    win_base_deploy_dir: D:\temp\deploy
+
+  tasks:
+# Remove old temp deploy folders before executing job
+  - name: "Linux - Remove deploy directory on remote"
+    file:
+      state: absent
+      path: "{{lnx_base_deploy_dir}}/{{app_name}}/{{env}}"
+    become: yes
+    when: ansible_facts['system'] == "Linux" and (target == "Deploy" or target == "Predeploy" or target == "application_setup" )
+
+  - name: "Windows - Remove deploy directory on remote"
+    win_file:
+      path: '{{win_base_deploy_dir}}\{{app_name}}\{{env}}'
+      state: absent
+    when: ansible_facts['system'] == "Win32NT" and (target == "Deploy" or target == "Predeploy")
+
+# Create temp deploy folders before executing job
+  - name: "Linux - Create deploy directory on remote"
+    file:
+      state: directory
+      recurse: yes
+      mode: 0777
+      path: "{{lnx_base_deploy_dir}}/{{app_name}}/{{env}}"
+    become: yes
+    when: ansible_facts['system'] == "Linux"
+
+  - name: "Windows - Create deploy directory on remote"
+    win_file:
+      path: '{{win_base_deploy_dir}}\{{app_name}}\{{env}}'
+      state: directory
+    when: ansible_facts['system'] == "Win32NT"
+
+# # Create vars file in temp deploy folders
+#   - name: "Linux - Download yaml file with variables for linux system"
+#     get_url:
+#       url: "variable_storage_url"
+#       dest: '{{win_base_deploy_dir}}\{{app_name}}\{{env}}\init.{{app_name}}.yml'
+#       url_username: "xxxx"
+#       url_password: "xxxx"
+#       force: yes
+#       mode: 0777
+#     become: yes
+#     when: ansible_facts['system'] == "Linux"
+#
+#   - name: "Windows - Download yaml file with variables for windows system"
+#     win_get_url:
+#       url: "variable_storage_url"
+#       dest: '{{win_base_deploy_dir}}\{{app_name}}\{{env}}\init.{{app_name}}.yml'
+#       url_username: "xxxx"
+#       url_password: "xxxx"
+#       force_basic_auth: yes
+#     when: ansible_facts['system'] == "Win32NT"
+
+# Send vars file to Ansible master
+  # - name: "Linux - Send YAML file with {{app_name}} variables to Ansible master"
+  #   fetch:
+  #     src: "{{lnx_base_deploy_dir}}/{{app_name}}/{{env}}/init.{{app_name}}.yml"
+  #     dest: "{{playbook_dir}}/init.{{app_name}}.yml"
+  #     flat: yes
+  #   when: ansible_facts['system'] == "Linux"
+  #
+  # - name: "Windows - Send YAML file with {{app_name}} variables to Ansible master"
+  #   fetch:
+  #     src: '{{win_base_deploy_dir}}\{{app_name}}\{{env}}\init.{{app_name}}.yml'
+  #     dest: "{{playbook_dir}}/init.{{app_name}}.yml"
+  #     flat: yes
+  #   when: ansible_facts['system'] == "Win32NT"
+
+  # - name: "Include {{app_name}} vars from {{playbook_dir}}/init.{{app_name}}.yml"
+  #   include_vars:
+  #     file: "{{playbook_dir}}/init.{{app_name}}.yml"
+  #   delegate_to: localhost
+  #   become: no
+
+# Calling role for deployment
+  - name: "Call role for {{app_name}} deployment"
+    include_role:
+      name: "{{target}}"
+  tags:
+    - always

@@ -1,0 +1,21 @@
+---
+- name: Pre verify
+  block:
+    - debug: msg="EDA_PRE_VerificationResult start"
+
+    include_tasks: pre-verify.yml
+
+  tags:
+    - pre-verify
+# Start the service
+- name: resolution
+  block:
+    include_tasks: resolution.yml
+  tags:
+    - resolution
+
+- name: Post verify
+  block:
+    include_tasks: resolution.yml
+  tags:
+    - post-verify

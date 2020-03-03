@@ -1,0 +1,52 @@
+
+
+$SrvcRac="{{ServiceName}}"
+
+## mycode
+## Write-Host "`r`nStart Services:`r`n"
+
+if ( "$SrvcRac" -ne "" )
+{
+	$service_name = Get-Service $SrvcRac
+
+	$SvcName=$service_name.Name
+
+	$SvcStartupType=Get-WmiObject -Class Win32_Service -Property StartMode -Filter "Name='$SvcName'"
+
+	## Check if service is enabled/disabled
+	if ($SvcStartupType.StartMode -ne "Disabled" )
+	{
+	## Check if service is already-running
+	$SvcStatus=$service_name.Status
+		if ($SvcStatus -ne "Running")
+		{
+				## If running => start The Services
+				Write-Host "`t`tStarting..."
+				$SvcLog=""
+				Start-Service $SvcName -OutVariable +SvcLog -WarningVariable +SvcLog -ErrorVariable +SvcLog *> $Null
+				if ( $? -eq "True")
+				{
+					Write-Host $SvcLog
+					Write-Host "`t`t`tStarted"
+				}
+				else
+				{
+					Write-Host $SvcLog
+					Write-Host "`t`t`tFailed"
+					$SrvResult=1
+				}
+		}
+		else
+		{
+				Write-Host "`t`tService already Started"
+		}
+	}
+	else
+	{
+		Write-Host "`t`tService is set to Disabled - No start"
+	}
+}
+else
+{
+    Write-Host "No ${SrvcRac}* service in this server"
+}

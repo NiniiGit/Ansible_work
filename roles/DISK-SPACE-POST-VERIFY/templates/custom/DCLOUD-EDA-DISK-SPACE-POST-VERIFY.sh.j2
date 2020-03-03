@@ -1,0 +1,14 @@
+#!/bin/bash
+source ~/.bashrc
+
+#send email with attachment below files
+while read sqlfile_name; do
+  echo "$sqlfile_name"
+
+du -h -d 2 $sqlfile_name >> After_deletion_size.txt
+
+done < HIGH_size_SQL_files_nameonly.txt
+
+du -h -d 2  /ehc/fs1/adp/delgate/logs/splunks/logs_replication.log >> After_deletion_size.txt
+
+echo -e "Please find the attached details of zipped files and their size . You can compare them with previous result in email EDA Pre-verify check |disk drive space  " | mail -a /ehc/fs1/home/infog/deploy/EDA/DCLOUD-EDA-DISK-SPACE-POST-VERIFY/After_deletion_size.txt  -s "{{jira_Ticket}} | EDA POST-VERIFY check |disk drive space" dcloud@adp.com

@@ -1,0 +1,38 @@
+---
+  - name: "Remove older deploy directory for {{role_name}}"
+    file:
+      path: /ehc/fs1/home/infog/deploy/EDA/DCLOUD-EDA-DISK-SPACE-POST-VERIFY/
+      state: absent
+
+
+  - name: "Creates new deploy directory for {{role_name}}"
+    file:
+      path: /ehc/fs1/home/infog/deploy/EDA/DCLOUD-EDA-DISK-SPACE-POST-VERIFY/
+      state: directory
+      mode: '0777'
+
+  - name: "Unix Steps: Template check script for custom ihcm setup"
+    template:
+      dest: "{{item.target_path}}/{{item.file}}"
+      src: "{{item.src_path}}/{{item.file}}.j2"
+      mode: 0777
+    when: "ansible_facts['system'] == \"Linux\""
+    with_items:
+      - { file: "DCLOUD-EDA-DISK-SPACE-POST-VERIFY.sh" , src_path: "custom" , target_path: "/ehc/fs1/home/infog/deploy/EDA/DCLOUD-EDA-DISK-SPACE-POST-VERIFY" }
+
+  - name: Run DCLOUD-EDA-DISK-SPACE-POST-VERIFY to gather information.
+    shell: ./DCLOUD-EDA-DISK-SPACE-POST-VERIFY.sh >> EDA_output.log
+    args:
+      chdir: /ehc/fs1/home/infog/deploy/EDA/DCLOUD-EDA-DISK-SPACE-POST-VERIFY/
+      creates: EDA_output.log
+    register: op
+
+  - name: append the output from resgister-op to /ehc/fs1/home/infog/deploy/EDA/DCLOUD-EDA-DISK-SPACE-POST-VERIFY/log_EDA.txt
+    lineinfile:
+      dest: /ehc/fs1/home/infog/deploy/EDA/DCLOUD-EDA-DISK-SPACE-POST-VERIFY/EDA_output.log
+      line: "{{ op }}"
+      insertafter: EOF
+
+
+
+  - debug: msg="EDA_POST_VerificationResult Passed"

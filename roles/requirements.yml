@@ -1,0 +1,6 @@
+# common roles from bitbucket
+- src: https://gitURL_of_role_name_to_be_retrieved_everytime.git
+  scm: git
+  version: v2
+  name: role_name_to_retrieved_everytime
+

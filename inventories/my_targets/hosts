@@ -1,0 +1,6 @@
+# host file for project
+servrname ansible_host=full_host_name ansible_connection=ssh
+
+
+[env_name]
+servrname

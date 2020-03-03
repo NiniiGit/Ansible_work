@@ -1,0 +1,15 @@
+#!/bin/bash
+source ~/.bashrc
+
+Environment={{usage}}
+DB_list='{{db}}'
+
+
+for Item in $DB_list ;
+#$a ;
+  do
+    check_dbgate_db $Environment $Item
+    #>>check_dbgate_db_status.log
+    echo $Item
+    #echo "##############################" >>check_dbgate_db_status.log
+  done

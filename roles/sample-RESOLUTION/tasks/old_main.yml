@@ -1,0 +1,75 @@
+---
+- name: Pre verify
+  block:
+    - name: "Creates deploy directory for {{role_name}}"
+      file:
+        path: /ehc/fs1/home/infog/deploy/EDA/check_dbgate_db.sh
+        state: absent
+      register: result
+
+    - name: "Creates deploy directory for {{role_name}}"
+      file:
+        path: /ehc/fs1/home/infog/deploy/EDA/EDA_output.log
+        state: absent
+
+    - debug:
+        msg: "EDA_PRE_VerificationResult: Passed"
+  tags:
+    - pre-verify
+  when: result.state is defined
+
+# Start the service
+- name: resolution
+  block:
+
+  # - name: "Creates deploy directory for {{role_name}}"
+  #   file:
+  #     path: /ehc/fs1/home/infog/deploy/EDA/log_output_EDA.txt
+  #     state: touch
+  #     mode: '0777'
+
+  - name: "Creates deploy directory for {{role_name}}"
+    file:
+      path: /ehc/fs1/home/infog/deploy/EDA/
+      state: directory
+      mode: '0777'
+
+  - name: "Unix Steps: Template check script for custom ihcm setup"
+    template:
+      dest: "{{item.target_path}}/{{item.file}}"
+      src: "{{item.src_path}}/{{item.file}}.j2"
+      mode: 0777
+    when: "ansible_facts['system'] == \"Linux\""
+    with_items:
+      - { file: "check_dbgate_db.sh" , src_path: "custom" , target_path: "/ehc/fs1/home/infog/deploy/EDA" }
+
+  - name: Run check_dbgate_db to gather information.
+    shell: ./check_dbgate_db.sh >> EDA_output.log
+    args:
+      chdir: /ehc/fs1/home/infog/deploy/EDA/
+      creates: EDA_output.log
+      # executable: /bin/sh
+    register: op
+
+  - name: append the output from resgister-op to /ehc/fs1/home/infog/deploy/EDA/log_EDA.txt
+    lineinfile:
+      dest: /ehc/fs1/home/infog/deploy/EDA/EDA_output.log
+      line: "{{ op }}"
+      insertafter: EOF
+
+
+  - name: Send e-mail to a bunch of users, attaching files
+    shell: echo -e "Please find the attached log file output of command check_dbgate_db for dbgate down db " | mail -a /ehc/fs1/home/infog/deploy/EDA/EDA_output.log  -s "Ansible EDA check_dbgate_db output" ninad.desai@adp.com
+    # command: /ehc/fs1/adp/delgate/scripts/check_dbgate_db UAT1 cloudtest
+  - debug:
+      msg: "check completed successfully"
+  tags:
+    - resolution
+
+- name: Post verify
+  block:
+
+  - debug:
+      msg: "EDA_PRE_VerificationResult: Passed"
+  tags:
+    - post-verify
